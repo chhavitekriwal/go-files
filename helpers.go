@@ -17,7 +17,7 @@ func RespondWithJSON(w http.ResponseWriter, r *http.Request,statuscode int,respo
 func RespondWithError(w http.ResponseWriter,r *http.Request,statuscode int, message string) {
     w.Header().Set("Content-Type","application/json")
     w.WriteHeader(statuscode)
-    json.NewEncoder(w).Encode(ErrorResponse{Statuscode: statuscode,Error: message})
+    json.NewEncoder(w).Encode(ErrorResponse{statuscode,message})
 }
 
 func GenerateJWTToken(username string) (string,error){
@@ -25,7 +25,8 @@ func GenerateJWTToken(username string) (string,error){
     claims := &Claims{
             Username: username,
             RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(expirationTime),
+				IssuedAt: jwt.NewNumericDate(time.Now()),
+            	ExpiresAt: jwt.NewNumericDate(expirationTime),
         },
     }
 
