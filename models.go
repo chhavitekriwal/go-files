@@ -39,3 +39,10 @@ type Claims struct {
     Username string `json:"username"`
     jwt.RegisteredClaims
 }
+
+type UploadResponse struct {
+    Message string `json:"message"`
+    Filename string `json:"filename"`
+    Size int64 `json:"size"`
+    Type string `json:"type"`
+}

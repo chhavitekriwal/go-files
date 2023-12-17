@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"os"
+    "path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -73,7 +76,7 @@ func LoginHandler(db *gorm.DB) http.HandlerFunc {
         }
         jwtTokenString, err := GenerateJWTToken(creds.Username)
         if err != nil {
-            log.Fatalf("Failed to generate token: %v", err)
+            log.Printf("Failed to generate token: %v", err)
             RespondWithError(w,r,http.StatusInternalServerError,"Failed to generate token")
             return
         }
@@ -85,6 +88,38 @@ func LoginHandler(db *gorm.DB) http.HandlerFunc {
 func UploadHandler (db *gorm.DB) http.HandlerFunc {
 
     return func(w http.ResponseWriter, r *http.Request) {
-        RespondWithJSON(w,r,http.StatusOK,"Upload endpoint hit")
+        r.ParseMultipartForm(10<<20)
+        file, fileHeader, err := r.FormFile("file")
+        if err!= nil {
+            log.Println(err)
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not upload file")
+            return
+        }
+        defer file.Close()
+
+        cwd,_ := os.Getwd()
+        err = os.Mkdir("uploads",0755)
+        if err!= nil {
+            log.Println(err)
+        }
+        newFilePath := filepath.Join(cwd,"uploads",fileHeader.Filename)
+        newFile, err := os.Create(newFilePath)
+        if err!= nil {
+            log.Printf("Error creating file: %v",err)
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not upload file")
+        }
+        defer newFile.Close()
+
+        _, err = io.Copy(newFile,file)
+        if err!= nil {
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not upload file")
+        }
+
+        RespondWithJSON(w,r, http.StatusCreated,
+            UploadResponse{
+                "Successfully uploaded",
+                fileHeader.Filename,
+                fileHeader.Size,
+                fileHeader.Header.Get("Content-Type") })
     }
 }
