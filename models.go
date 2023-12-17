@@ -14,10 +14,9 @@ type User struct {
 
 type FileTransaction struct {
     gorm.Model
-    UserID   uint		`gorm:"column:user_id"`
     Filename string		`gorm:"column:filename"`
-    Type     string 	`gorm:"column:transaction_type"`
-    Timestamp time.Time	`gorm:"column:timestamp"`
+    Transaction     string 	`gorm:"column:transaction_type"`
+    Username   string		`gorm:"column:username"`
 }
 
 type ErrorResponse struct {

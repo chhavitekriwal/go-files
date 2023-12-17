@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
     "log"
     "gorm.io/driver/sqlite"
     "gorm.io/gorm"
@@ -29,4 +30,12 @@ func MigrateModels(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func CreateTransaction(db *gorm.DB,transaction FileTransaction) (int64,error) {
+    result := db.Create(&transaction)
+    if(result.RowsAffected == 0) {
+        return 0,errors.New("transaction not added")
+    }
+    return result.RowsAffected,nil
 }

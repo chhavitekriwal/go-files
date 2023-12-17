@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -8,12 +9,16 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type contextKey string
+const usernameKey contextKey = "username"
+
 func AuthenticationMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
         tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-        token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+        claims := &Claims{}
+        token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
             return GetJWTSecretKey(), nil
         })
 
@@ -27,6 +32,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
             return
         }
 
-        next.ServeHTTP(w, r)
+        ctx := context.WithValue(r.Context(), usernameKey, claims.Username)
+        next.ServeHTTP(w, r.WithContext(ctx))
     })
 }

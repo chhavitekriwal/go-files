@@ -120,6 +120,15 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
             return
         }
 
+        transaction := FileTransaction{
+            Filename: fileHeader.Filename,
+            Transaction: "UPLOAD",
+            Username: r.Context().Value(usernameKey).(string),
+        }
+        if _,err := CreateTransaction(db,transaction); err!= nil {
+            log.Printf("Error updating transaction")
+        }
+
         RespondWithJSON(w,r, http.StatusCreated,
             UploadResponse{
                 "Successfully uploaded",
@@ -165,6 +174,17 @@ func DownloadHandler (db *gorm.DB) http.HandlerFunc {
         if _,err := io.Copy(w,file); err!=nil {
             RespondWithError(w,r,http.StatusInternalServerError,"Could not download file")
             log.Println(err)
+            return
+        }
+
+        transaction := FileTransaction{
+            Filename: filename,
+            Transaction: "DOWNLOAD",
+            Username: r.Context().Value(usernameKey).(string),
+        }
+
+        if _,err := CreateTransaction(db,transaction); err!= nil {
+            log.Printf("Error updating transaction")
         }
     }
 }
@@ -223,5 +243,14 @@ func DeleteHandler(db *gorm.DB) http.HandlerFunc {
             return
         }
         RespondWithJSON(w,r,http.StatusOK,map[string]string{"message": "Successfully deleted"})
+        
+        transaction := FileTransaction{
+            Filename: filename,
+            Transaction: "DELETE",
+            Username: r.Context().Value(usernameKey).(string),
+        }
+        if _,err := CreateTransaction(db,transaction); err!= nil {
+            log.Printf("Error updating transaction")
+        }
     }
 }
