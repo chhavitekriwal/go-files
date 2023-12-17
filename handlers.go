@@ -81,3 +81,10 @@ func LoginHandler(db *gorm.DB) http.HandlerFunc {
         RespondWithJSON(w,r,http.StatusOK,AuthResponse{"Logged in",jwtTokenString})
     }
 }
+
+func UploadHandler (db *gorm.DB) http.HandlerFunc {
+
+    return func(w http.ResponseWriter, r *http.Request) {
+        RespondWithJSON(w,r,http.StatusOK,"Upload endpoint hit")
+    }
+}
