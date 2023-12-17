@@ -33,6 +33,7 @@ func main() {
 	http.HandleFunc("/login",LoginHandler(db))
 	
 	http.Handle("/upload",AuthenticationMiddleware(http.HandlerFunc(UploadHandler(db))))
+	http.Handle("/download",AuthenticationMiddleware(http.HandlerFunc(DownloadHandler(db))))
 
 	log.Println("Starting server on :8080..")
 	log.Fatal(http.ListenAndServe(":8080", nil))

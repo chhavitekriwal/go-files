@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"os"
-    "path/filepath"
+	"path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -31,7 +32,8 @@ func RegisterHandler(db *gorm.DB) http.HandlerFunc {
         }        
         hashedPass, err := bcrypt.GenerateFromPassword([]byte(creds.Password),bcrypt.DefaultCost)
         if(err!=nil) {
-            RespondWithError(w,r,http.StatusInternalServerError,"Failed to hash password")
+            RespondWithError(w,r,http.StatusInternalServerError,"Failed to register")
+            return
         }
         newUser := User{Username:creds.Username,PasswordHash: string(hashedPass)}
 
@@ -107,12 +109,14 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
         if err!= nil {
             log.Printf("Error creating file: %v",err)
             RespondWithError(w,r,http.StatusInternalServerError,"Could not upload file")
+            return
         }
         defer newFile.Close()
 
         _, err = io.Copy(newFile,file)
         if err!= nil {
             RespondWithError(w,r,http.StatusInternalServerError,"Could not upload file")
+            return
         }
 
         RespondWithJSON(w,r, http.StatusCreated,
@@ -121,5 +125,45 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
                 fileHeader.Filename,
                 fileHeader.Size,
                 fileHeader.Header.Get("Content-Type") })
+    }
+}
+
+func DownloadHandler (db *gorm.DB) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        filename := r.URL.Query().Get("filename")
+        if filename == "" {
+            RespondWithError(w,r,http.StatusBadRequest,"Missing filename")
+            return
+        }
+
+        cwd,_ := os.Getwd()
+        path := filepath.Join(cwd,"uploads",filepath.Base(filename))
+
+        fileInfo,err := os.Stat(path)
+        if err != nil {
+            if errors.Is(err,os.ErrNotExist) {
+                RespondWithError(w,r,http.StatusNotFound,"File doesn't exist")
+            } else {
+                RespondWithError(w,r,http.StatusInternalServerError,"Could not download file")
+            }
+            return
+        }
+
+        if fileInfo.IsDir() {
+            RespondWithError(w,r,http.StatusNotFound,"File doesn't exist")
+            return
+        }
+
+        file, err := os.Open(path)
+        if err!= nil {
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not download file")
+            return
+        }
+        defer file.Close()
+
+        if _,err := io.Copy(w,file); err!=nil {
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not download file")
+            log.Println(err)
+        }
     }
 }
