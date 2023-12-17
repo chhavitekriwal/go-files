@@ -202,3 +202,26 @@ func ListFilesHandler (w http.ResponseWriter, r *http.Request) {
     })
     RespondWithJSON(w,r,http.StatusOK,fileList)
 }
+
+func DeleteHandler(db *gorm.DB) http.HandlerFunc {
+    return func (w http.ResponseWriter,r *http.Request) {
+        filename := r.URL.Query().Get("filename");
+        if filename == "" {
+            RespondWithError(w,r,http.StatusBadRequest,"No filename provided")
+            return
+        }
+        cwd,err := os.Getwd();
+        if err!= nil {
+            log.Println(err)
+            RespondWithError(w,r,http.StatusInternalServerError,"Failed to delete")
+            return
+        }
+        path := filepath.Join(cwd,"uploads",filename)
+        if err := os.Remove(path); err!= nil {
+            log.Println(err)
+            RespondWithError(w,r,http.StatusInternalServerError,"Failed to delete")
+            return
+        }
+        RespondWithJSON(w,r,http.StatusOK,map[string]string{"message": "Successfully deleted"})
+    }
+}
