@@ -43,6 +43,13 @@ type Claims struct {
 type UploadResponse struct {
     Message string `json:"message"`
     Filename string `json:"filename"`
-    Size int64 `json:"size"`
+    Size int64 `json:"size_in_bytes"`
     Type string `json:"type"`
+}
+
+type FileEntry struct {
+    Name string `json:"filename"`
+    Size int64 `json:"size_in_bytes"`
+    Type string `json:"type"`
+    Modified time.Time `json:"modified_at"`
 }

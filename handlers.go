@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -166,4 +167,38 @@ func DownloadHandler (db *gorm.DB) http.HandlerFunc {
             log.Println(err)
         }
     }
+}
+
+func ListFilesHandler (w http.ResponseWriter, r *http.Request) {
+    cwd,err := os.Getwd()
+    if err != nil {
+        RespondWithError(w,r,http.StatusInternalServerError,"Could not list files")
+    }
+
+    files,_ := os.ReadDir(filepath.Join(cwd,"uploads"))
+    
+    fileList := make([]FileEntry, 0, len(files))
+
+    for _, file := range files {
+        info, err := file.Info()
+        if err != nil {
+            continue
+        }
+        fi,_ := os.Open(filepath.Join(cwd,"uploads",file.Name()))
+        buf := make([]byte,512)
+        fi.Read(buf)
+        fi.Close()
+        fileType := http.DetectContentType(buf)
+        fileList = append(fileList, FileEntry{
+            Name: info.Name(),
+            Size: info.Size(),
+            Type: fileType,
+            Modified: info.ModTime(),
+        })
+    }
+
+    sort.Slice(fileList,func(i, j int) bool {
+        return fileList[j].Size < fileList[i].Size
+    })
+    RespondWithJSON(w,r,http.StatusOK,fileList)
 }
