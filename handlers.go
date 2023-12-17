@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 func RegisterHandler(db *gorm.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
