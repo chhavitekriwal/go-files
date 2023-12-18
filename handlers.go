@@ -107,6 +107,10 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
             log.Println(err)
         }
         newFilePath := filepath.Join(cwd,"uploads",fileHeader.Filename)
+
+        _,err = os.Stat(newFilePath); 
+        exists := !errors.Is(err,os.ErrNotExist)
+
         newFile, err := os.Create(newFilePath)
         if err!= nil {
             log.Printf("Error creating file: %v",err)
@@ -121,9 +125,15 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
             return
         }
 
+        transactionType:="UPLOAD"
+        
+        if exists {
+            transactionType = "UPDATE"
+        }
+
         transaction := FileTransaction{
             Filename: fileHeader.Filename,
-            Transaction: "UPLOAD",
+            Transaction: transactionType,
             Username: r.Context().Value(usernameKey).(string),
             CreatedAt: time.Now(),
         }
@@ -212,11 +222,12 @@ func ListFilesHandler (w http.ResponseWriter, r *http.Request) {
         fi.Read(buf)
         fi.Close()
         fileType := http.DetectContentType(buf)
+        
         fileList = append(fileList, FileEntry{
             Name: info.Name(),
             Size: info.Size(),
             Type: fileType,
-            Modified: info.ModTime(),
+            Modified: info.ModTime().Local().Format(time.DateTime),
         })
     }
 

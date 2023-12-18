@@ -51,5 +51,5 @@ type FileEntry struct {
     Name string `json:"filename"`
     Size int64 `json:"size_in_bytes"`
     Type string `json:"type"`
-    Modified time.Time `json:"modified_at"`
+    Modified string `json:"modified"`
 }
