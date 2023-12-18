@@ -36,6 +36,7 @@ func main() {
 	http.Handle("/download",AuthenticationMiddleware(http.HandlerFunc(DownloadHandler(db))))
 	http.Handle("/files",AuthenticationMiddleware(http.HandlerFunc(ListFilesHandler)))
 	http.Handle("/delete",AuthenticationMiddleware(http.HandlerFunc(DeleteHandler(db))))
+	http.Handle("/transactions",AuthenticationMiddleware(http.HandlerFunc(GetTransactionsHandler(db))))
 
 	log.Println("Starting server on :8080..")
 	log.Fatal(http.ListenAndServe(":8080", nil))

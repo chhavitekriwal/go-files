@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -124,6 +125,7 @@ func UploadHandler (db *gorm.DB) http.HandlerFunc {
             Filename: fileHeader.Filename,
             Transaction: "UPLOAD",
             Username: r.Context().Value(usernameKey).(string),
+            CreatedAt: time.Now(),
         }
         if _,err := CreateTransaction(db,transaction); err!= nil {
             log.Printf("Error updating transaction")
@@ -181,6 +183,7 @@ func DownloadHandler (db *gorm.DB) http.HandlerFunc {
             Filename: filename,
             Transaction: "DOWNLOAD",
             Username: r.Context().Value(usernameKey).(string),
+            CreatedAt: time.Now(),
         }
 
         if _,err := CreateTransaction(db,transaction); err!= nil {
@@ -248,9 +251,22 @@ func DeleteHandler(db *gorm.DB) http.HandlerFunc {
             Filename: filename,
             Transaction: "DELETE",
             Username: r.Context().Value(usernameKey).(string),
+            CreatedAt: time.Now(),
         }
         if _,err := CreateTransaction(db,transaction); err!= nil {
             log.Printf("Error updating transaction")
         }
+    }
+}
+
+func GetTransactionsHandler(db *gorm.DB) http.HandlerFunc {
+    return func(w http.ResponseWriter,r *http.Request) {
+        result,err := GetAllTransactions(db)
+        if(err!=nil) {
+            log.Println(err)
+            RespondWithError(w,r,http.StatusInternalServerError,"Could not get file transactions")
+            return
+        }
+        RespondWithJSON(w,r,http.StatusOK,result)
     }
 }

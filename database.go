@@ -39,3 +39,12 @@ func CreateTransaction(db *gorm.DB,transaction FileTransaction) (int64,error) {
     }
     return result.RowsAffected,nil
 }
+
+func GetAllTransactions(db *gorm.DB) ([]FileTransaction,error) {
+	transactions := []FileTransaction{}
+	result := db.Order("created_at desc").Find(&transactions)
+	if result.Error != nil {
+		return nil,result.Error
+	}
+	return transactions,nil
+}

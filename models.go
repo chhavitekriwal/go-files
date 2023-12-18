@@ -13,10 +13,11 @@ type User struct {
 }
 
 type FileTransaction struct {
-    gorm.Model
-    Filename string		`gorm:"column:filename"`
-    Transaction     string 	`gorm:"column:transaction_type"`
-    Username   string		`gorm:"column:username"`
+    ID uint             `json:"id" sql:"AUTO_INCREMENT" gorm:"primary_key"`
+    CreatedAt time.Time     `json:"timestamp" gorm:"column:created_at"`
+    Filename string		`json:"filename" gorm:"column:filename"`
+    Transaction     string 	`json:"transaction_type" gorm:"column:transaction_type"`
+    Username   string		`json:"username" gorm:"column:username"`
 }
 
 type ErrorResponse struct {
