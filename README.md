@@ -11,7 +11,8 @@ Clone the project
 ```
 Build and start the server
 ```
-  go build .
+  go build
+  ./go-files
 ```
 
 ## API Reference
@@ -75,13 +76,7 @@ Base URL for local: http://127.0.0.1:8080
 ```shell
   POST /upload
 ```
-
-<details>
-<summary>Request</summary>
-<pre>
-![Alt text](assets/image-1.png)
-</pre>
-</details>
+![image](https://github.com/chhavitekriwal/go-files/assets/80950738/297454d7-02fa-4e5d-a00f-a1dcac62d356)
 
 <details>
 <summary>Response</summary>
@@ -110,10 +105,11 @@ Base URL for local: http://127.0.0.1:8080
 </pre>
 </details>
 
+### List all files
+
 ```shell
   GET /files
 ```
-### List all files
 
 <details>
 <summary>Response</summary>
